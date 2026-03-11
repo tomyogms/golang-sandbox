@@ -1,14 +1,41 @@
 version: "3.9"
 
 services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: golang-sandbox-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: golang_sandbox
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   api:
     build: .
     container_name: golang-sandbox-api
     environment:
       - PORT=8080
       - ENV=production
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=golang_sandbox
+      - DB_SSLMODE=disable
     ports:
       - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/up"]
@@ -16,4 +43,7 @@ services:
       timeout: 3s
       retries: 3
       start_period: 5s
+
+volumes:
+  postgres_data:
 

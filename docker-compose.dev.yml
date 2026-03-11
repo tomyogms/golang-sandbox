@@ -1,6 +1,24 @@
 version: "3.9"
 
 services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: golang-sandbox-postgres-dev
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: golang_sandbox
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   api:
     build:
       context: .
@@ -9,11 +27,23 @@ services:
     environment:
       - PORT=8080
       - ENV=development
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=golang_sandbox
+      - DB_SSLMODE=disable
     ports:
       - "8080:8080"
     volumes:
       - .:/app
       - /app/tmp  # Exclude tmp directory from volume mount
     working_dir: /app
+    depends_on:
+      postgres:
+        condition: service_healthy
     command: sh -c "go install github.com/air-verse/air@latest && air"
     restart: unless-stopped
+
+volumes:
+  postgres_data_dev:

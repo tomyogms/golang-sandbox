@@ -182,7 +182,7 @@ make clean         # Remove build artifacts
 
 ## API Endpoints
 
-### Health Check
+### Simple Health Check
 
 ```bash
 curl http://localhost:8080/up
@@ -192,6 +192,26 @@ Response:
 ```json
 {"status":"up"}
 ```
+
+### Detailed Health Check (with Database Status)
+
+```bash
+curl http://localhost:8080/health
+```
+
+Response (when database is healthy):
+```json
+{"status":"healthy","database":"healthy"}
+```
+
+Response (when database is unhealthy):
+```json
+{"status":"unhealthy","database":"unhealthy"}
+```
+
+Status codes:
+- `200 OK` - All services healthy
+- `503 Service Unavailable` - Database or other services unhealthy
 
 ## Running Tests with Docker
 

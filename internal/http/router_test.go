@@ -11,7 +11,7 @@ import (
 
 func TestHandleUp(t *testing.T) {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	server := NewServer(logger)
+	server := NewServer(logger, nil)
 
 	tests := []struct {
 		name           string
@@ -50,7 +50,7 @@ func TestHandleUp(t *testing.T) {
 
 func TestContentType(t *testing.T) {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	server := NewServer(logger)
+	server := NewServer(logger, nil)
 
 	req := httptest.NewRequest("GET", "/up", nil)
 	w := httptest.NewRecorder()
@@ -60,5 +60,47 @@ func TestContentType(t *testing.T) {
 	contentType := w.Header().Get("Content-Type")
 	if contentType != "application/json" {
 		t.Errorf("expected Content-Type 'application/json', got '%s'", contentType)
+	}
+}
+
+func TestHandleHealth(t *testing.T) {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	server := NewServer(logger, nil)
+
+	tests := []struct {
+		name           string
+		expectedStatus int
+		expectedBody   map[string]interface{}
+	}{
+		{
+			name:           "health check without database returns unhealthy",
+			expectedStatus: http.StatusOK,
+			expectedBody: map[string]interface{}{
+				"status":   "healthy",
+				"database": "healthy",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest("GET", "/health", nil)
+			w := httptest.NewRecorder()
+
+			server.ServeHTTP(w, req)
+
+			if w.Code != tt.expectedStatus {
+				t.Errorf("expected status %d, got %d", tt.expectedStatus, w.Code)
+			}
+
+			var result map[string]interface{}
+			if err := json.NewDecoder(w.Body).Decode(&result); err != nil {
+				t.Errorf("failed to decode response: %v", err)
+			}
+
+			if result["status"] != "healthy" {
+				t.Errorf("expected status 'healthy', got '%v'", result["status"])
+			}
+		})
 	}
 }
