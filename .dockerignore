@@ -1,0 +1,52 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.so.*
+*.dylib
+/api
+/server
+
+# Build directories
+/tmp
+dist/
+
+# Test binaries
+*.test
+*.out
+*.html
+coverage.out
+coverage.html
+
+# Air
+build-errors.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Git
+.git
+.gitignore
+.gitmodules
+
+# Dependencies cache
+vendor/
+
+# Documentation and other files
+README.md
+RELEASES.md
+dev.sh
+Makefile
+.air.toml
+docker-compose.yml
+docker-compose.dev.yml
+.dockerignore
+.gitignore
+.env
+.env.example
